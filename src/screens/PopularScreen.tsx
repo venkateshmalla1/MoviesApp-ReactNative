@@ -96,4 +96,4 @@ const styles = StyleSheet.create({
     // width is set dynamically in renderItem using CARD_WIDTH
     height: CARD_WIDTH * 1.5, // keep consistent height if needed
   },
-});
+}); 
