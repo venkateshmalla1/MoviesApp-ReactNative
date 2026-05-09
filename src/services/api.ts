@@ -51,15 +51,17 @@ const transformMovie = (movie: ApiMovie): Movie => ({
     id: lang.id,
     englishName: lang.english_name,
   })),
+  // Recursively transforms similar movies if they exist in the API response
   similarMovies: movie.similar_movies?.map(transformMovie),
 });
 
+/**
+ * AUTHENTICATION
+ */
 export const login = async (username: string, password: string): Promise<{ jwt_token: string }> => {
   const response = await fetch(`${BASE_URL}/login`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, password }),
   });
 
@@ -67,84 +69,68 @@ export const login = async (username: string, password: string): Promise<{ jwt_t
     const error = await response.json();
     throw new Error(error.error_msg || 'Login failed');
   }
-
   return response.json();
 };
 
+/**
+ * MOVIE FETCHING
+ */
+const getAuthHeaders = (jwtToken: string) => ({
+  Authorization: `Bearer ${jwtToken}`,
+});
+
 export const fetchTrendingMovies = async (jwtToken: string): Promise<Movie[]> => {
-  const response = await fetch(`${BASE_URL}/movies/trending`, {
-    headers: {
-      Authorization: `Bearer ${jwtToken}`,
-    },
+  const response = await fetch(`${BASE_URL}/movies-app/trending-movies`, {
+    headers: getAuthHeaders(jwtToken),
   });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch trending movies');
-  }
-
+  if (!response.ok) throw new Error('Failed to fetch trending movies');
   const data = await response.json();
   return data.results.map(transformMovie);
 };
 
 export const fetchOriginalMovies = async (jwtToken: string): Promise<Movie[]> => {
-  const response = await fetch(`${BASE_URL}/movies/originals`, {
-    headers: {
-      Authorization: `Bearer ${jwtToken}`,
-    },
+  const response = await fetch(`${BASE_URL}/movies-app/originals`, {
+    headers: getAuthHeaders(jwtToken),
   });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch original movies');
-  }
-
+  if (!response.ok) throw new Error('Failed to fetch original movies');
   const data = await response.json();
   return data.results.map(transformMovie);
 };
 
 export const fetchPopularMovies = async (jwtToken: string): Promise<Movie[]> => {
-  const response = await fetch(`${BASE_URL}/movies/popular`, {
-    headers: {
-      Authorization: `Bearer ${jwtToken}`,
-    },
+  const response = await fetch(`${BASE_URL}/movies-app/popular-movies`, {
+    headers: getAuthHeaders(jwtToken),
   });
+  if (!response.ok) throw new Error('Failed to fetch popular movies');
+  const data = await response.json();
+  return data.results.map(transformMovie);
+};
 
-  if (!response.ok) {
-    throw new Error('Failed to fetch popular movies');
-  }
-
+export const fetchTopRatedMovies = async (jwtToken: string): Promise<Movie[]> => {
+  const response = await fetch(`${BASE_URL}/movies-app/top-rated-movies`, {
+    headers: getAuthHeaders(jwtToken),
+  });
+  if (!response.ok) throw new Error('Failed to fetch top rated movies');
   const data = await response.json();
   return data.results.map(transformMovie);
 };
 
 export const fetchMovieDetails = async (jwtToken: string, movieId: string): Promise<Movie> => {
-  const response = await fetch(`${BASE_URL}/movies/${movieId}`, {
-    headers: {
-      Authorization: `Bearer ${jwtToken}`,
-    },
+  const response = await fetch(`${BASE_URL}/movies-app/movies/${movieId}`, {
+    headers: getAuthHeaders(jwtToken),
   });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch movie details');
-  }
-
+  if (!response.ok) throw new Error('Failed to fetch movie details');
   const data = await response.json();
-  return {
-    ...transformMovie(data.movie_details),
-    similarMovies: data.movie_details.similar_movies?.map(transformMovie),
-  };
+  // Fixed: movie_details already includes similar_movies; transformMovie handles the nesting.
+  return transformMovie(data.movie_details);
 };
 
 export const searchMovies = async (jwtToken: string, query: string): Promise<Movie[]> => {
-  const response = await fetch(`${BASE_URL}/movies/search?search=${encodeURIComponent(query)}`, {
-    headers: {
-      Authorization: `Bearer ${jwtToken}`,
-    },
+  // Path corrected to /movies-app/movies-search based on documentation
+  const response = await fetch(`${BASE_URL}/movies-app/movies-search?search=${encodeURIComponent(query)}`, {
+    headers: getAuthHeaders(jwtToken),
   });
-
-  if (!response.ok) {
-    throw new Error('Failed to search movies');
-  }
-
+  if (!response.ok) throw new Error('Failed to search movies');
   const data = await response.json();
   return data.results.map(transformMovie);
 };
