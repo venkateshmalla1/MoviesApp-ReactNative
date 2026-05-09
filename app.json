@@ -19,11 +19,17 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#000000"
-      }
+      },
+      "package": "com.venkyece.moviesapp"
     },
     "web": {
       "favicon": "./assets/logo.png",
       "bundler": "metro"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "ec56ad8e-9618-463b-8bb3-b65ea0b75078"
+      }
     }
   }
 }
