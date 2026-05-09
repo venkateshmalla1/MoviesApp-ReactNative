@@ -31,6 +31,7 @@ export const MovieSlider = ({ title, movies, status, onRetry }: MovieSliderProps
       case 'success':
         return (
           <FlatList
+            style={styles.list}
             data={movies}
             keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => <MovieCard movie={item} />}
@@ -55,13 +56,17 @@ export const MovieSlider = ({ title, movies, status, onRetry }: MovieSliderProps
 const styles = StyleSheet.create({
   container: {
     marginBottom: 24,
+    backgroundColor: '#000',
   },
   title: {
-    color: '#ffffff',
+    color: '#fff',
     fontSize: 20,
     fontWeight: '600',
     marginBottom: 12,
     paddingHorizontal: 16,
+  },
+  list: {
+    backgroundColor: '#000',
   },
   listContent: {
     paddingHorizontal: 16,
@@ -70,8 +75,10 @@ const styles = StyleSheet.create({
     height: 150,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#000',
   },
   failureContainer: {
     height: 200,
+    backgroundColor: '#000',
   },
 });

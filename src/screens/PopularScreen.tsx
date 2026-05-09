@@ -14,7 +14,9 @@ import { FailureView } from '../components/FailureView';
 
 const { width } = Dimensions.get('window');
 const NUM_COLUMNS = 3;
-const CARD_WIDTH = (width - 48) / NUM_COLUMNS;
+const HORIZONTAL_PADDING = 16;
+const GAP = 12;
+const CARD_WIDTH = (width - HORIZONTAL_PADDING * 2 - GAP * (NUM_COLUMNS - 1)) / NUM_COLUMNS;
 
 type ApiStatus = 'initial' | 'loading' | 'success' | 'failure';
 
@@ -61,11 +63,12 @@ export const PopularScreen = () => {
         keyExtractor={(item) => item.id.toString()}
         numColumns={NUM_COLUMNS}
         renderItem={({ item }) => (
-          <View style={styles.cardContainer}>
+          <View style={[styles.cardContainer, { width: CARD_WIDTH }]}>
             <MovieCard movie={item} />
           </View>
         )}
         contentContainerStyle={styles.listContent}
+        columnWrapperStyle={styles.columnWrapper}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#e50914" />
@@ -81,10 +84,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
   },
   listContent: {
-    padding: 16,
+    paddingHorizontal: HORIZONTAL_PADDING,
+    paddingTop: 16,
+    paddingBottom: 24,
+  },
+  columnWrapper: {
+    justifyContent: 'space-between', // distributes columns and creates consistent gaps
+    marginBottom: GAP,
   },
   cardContainer: {
-    width: CARD_WIDTH,
-    marginBottom: 12,
+    // width is set dynamically in renderItem using CARD_WIDTH
+    height: CARD_WIDTH * 1.5, // keep consistent height if needed
   },
 });

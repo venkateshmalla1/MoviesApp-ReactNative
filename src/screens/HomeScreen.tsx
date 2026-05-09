@@ -28,51 +28,54 @@ export const HomeScreen = () => {
   const [status, setStatus] = useState<'loading' | 'success' | 'failure'>('loading');
   const [refreshing, setRefreshing] = useState(false);
 
+  const loadData = async () => {
+    if (!jwtToken) return;
+    setStatus('loading');
+    try {
+      const [trending, originals] = await Promise.all([
+        fetchTrendingMovies(jwtToken),
+        fetchOriginalMovies(jwtToken),
+      ]);
+      setTrendingMovies(trending);
+      setOriginalMovies(originals);
+      setStatus('success');
+    } catch {
+      setStatus('failure');
+    }
+  };
+
   useEffect(() => {
-    const loadData = async () => {
-      if (!jwtToken) return;
-      setStatus('loading');
-      try {
-        const [trending, originals] = await Promise.all([
-          fetchTrendingMovies(jwtToken),
-          fetchOriginalMovies(jwtToken),
-        ]);
-        setTrendingMovies(trending);
-        setOriginalMovies(originals);
-        setStatus('success');
-      } catch {
-        setStatus('failure');
-      }
-    };
     loadData();
   }, [jwtToken]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([fetchTrendingMovies(jwtToken), fetchOriginalMovies(jwtToken)]);
+    await loadData();   // ✅ now updates state
     setRefreshing(false);
   }, [jwtToken]);
 
-  const randomMovie = useMemo(
-    () => (trendingMovies.length ? trendingMovies[Math.floor(Math.random() * trendingMovies.length)] : null),
-    [trendingMovies]
-  );
+  const randomMovie = useMemo(() => {
+    if (!trendingMovies.length) return null;
+    return trendingMovies[Math.floor(Math.random() * trendingMovies.length)];
+  }, [trendingMovies, refreshing]);   // ✅ re-compute on refresh
 
   if (status === 'loading') return <Loading />;
 
   return (
     <FlatList
+      style={styles.container}
       data={[{ key: 'content' }]}
       renderItem={() => (
         <View style={styles.sectionsContainer}>
-          <MovieSlider title="Trending Now" movies={trendingMovies} status={status} />
-          <MovieSlider title="Originals" movies={originalMovies} status={status} />
+          <MovieSlider title="Trending Now" movies={trendingMovies} status={status} onRetry={loadData} />
+          <MovieSlider title="Originals" movies={originalMovies} status={status} onRetry={loadData} />
         </View>
       )}
       keyExtractor={(item) => item.key}
       ListHeaderComponent={
         randomMovie && (
           <ImageBackground source={{ uri: randomMovie.backdropPath }} style={styles.heroContainer}>
+            <View style={styles.overlay} />
             <LinearGradient colors={['transparent', 'rgba(0,0,0,0.8)', '#000']} style={styles.heroGradient}>
               <View style={styles.heroContent}>
                 <Text style={styles.heroTitle}>{randomMovie.title}</Text>
@@ -101,6 +104,7 @@ export const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000' },
   heroContainer: { height: height * 0.55 },
+  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.6)' },
   heroGradient: { flex: 1, justifyContent: 'flex-end', padding: 16 },
   heroContent: { marginBottom: 20 },
   heroTitle: {
